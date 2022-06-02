@@ -1,0 +1,579 @@
+principal --> https://www.aspsnippets.com/questions/198685/Play-video-from-file-path-stored-in-database-using-jQuery-jPlayer-plugin-in-ASPNet/answers/
+https://www.aspsnippets.com/questions/151595/Play-video-from-local-folder-with-HTML5-video-player-using-jQuery-in-ASPNet/
+Play video from file path stored in database using jQuery jPlayer plugin in ASP.Net
+micah
+micah on Sep 14, 2017 11:42 PM  5502 Views
+ Answered
+1
+<div id="playerContainer" class="player-container"
+i want to use something like this to display video, example i wan to use div class to create video player that will display video fro database
+
+Download FREE API for Word, Excel and PDF in ASP.Net: Download
+Share on FaceBook Share on Twitter
+AnandM
+AnandM on Sep 27, 2017 07:21 AM
+Answer
+Hi micah,
+
+First the sample will work for only Mp4 videos.
+
+I have created a sample which full fill your requirement you need to modify the code according to your need.
+
+First you need to understand how the jPlayer Plugin works from below link.
+
+jplayer start guide
+
+Once you are done with above then refer below sample code.
+
+SQL
+
+Users Table
+
+1
+2
+3
+4
+5
+6
+7
+8
+CREATE TABLE [Users](
+    [UserId] [int] IDENTITY(1,1) NOT NULL,
+    [Name] [nvarchar](500) NOT NULL,
+    [Email] [nvarchar](500) NULL,
+    [UserName] [nvarchar](200) NULL,
+    [Password] [nvarchar](500) NOT NULL,
+    [ImageName] [nvarchar](505) NULL
+)
+Files Table
+
+1
+2
+3
+4
+5
+6
+7
+CREATE TABLE Files(
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Name] [varchar](500) NULL,
+    [FilePath] [varchar](1000) NULL,
+    [UserName] [varchar](50) NULL,
+    [contentType] [varchar](50) NULL
+)
+Login.aspx
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+<div>
+    <table>
+        <tr>
+            <td>
+                UserName:
+            </td>
+            <td>
+                <asp:TextBox ID="txtUserName" runat="server" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Password:
+            </td>
+            <td>
+                <asp:TextBox ID="txtPassword" runat="server" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <asp:Button Text="Login" OnClick="ValidateLogin" runat="server" />
+            </td>
+        </tr>
+    </table>
+</div>
+Login.aspx.cs
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+protected void ValidateLogin(object sender, EventArgs e)
+{
+    string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(constr))
+    {
+        string query = "SELECT UserName FROM Users WHERE UserName = @Username AND Password = @Password";
+        using (SqlCommand cmd = new SqlCommand(query, con))
+        {
+            if (!string.IsNullOrEmpty(txtUserName.Text.Trim()) && !string.IsNullOrEmpty(txtPassword.Text.Trim()))
+            {
+                cmd.Parameters.AddWithValue("@Username", txtUserName.Text.Trim());
+                cmd.Parameters.AddWithValue("@Password", txtPassword.Text.Trim());
+                con.Open();
+                string userName = cmd.ExecuteScalar().ToString();
+                Session["UserName"] = userName;
+                con.Close();
+                if (!string.IsNullOrEmpty(userName))
+                {
+                    Response.Redirect("Home.aspx");
+                }
+                else
+                {
+                    ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", "alert('Invalid UserName or Password!')", true);
+                }
+            }
+            else
+            {
+                ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", "alert('UserName and Password Required!')", true);
+            }
+        }
+    }
+}
+Home.aspx
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title></title>
+    <link href="js/dist/skin/pink.flag/css/jplayer.pink.flag.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script src="js/dist/jplayer/jquery.jplayer.js" type="text/javascript"></script>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div align="center">
+        <div>
+            <br />
+            <asp:ScriptManager runat="server" />
+            <asp:FileUpload ID="fuVideos" runat="server" />
+            <br />
+            <asp:Button ID="btnUpload" OnClick="Upload" Text="Upload" CssClass="btn btn-primary"
+                runat="server" />
+        </div>
+        <br />
+        <br />
+        <div>
+            <asp:DataList ID="dlVideos" runat="server" RepeatLayout="Table" RepeatColumns="1">
+                <ItemTemplate>
+                    <tr>
+                        <td>
+                            <div id='jp_container_<%# Eval("Id") %>' class="jp-video " role="application" aria-label="media player">
+                                <div class="jp-type-single">
+                                    <div id='jquery_jplayer_<%# Eval("Id") %>' class="jp-jplayer">
+                                    </div>
+                                    <div class="jp-gui">
+                                        <div class="jp-video-play">
+                                            <button class="jp-video-play-icon" role="button" tabindex="0">
+                                                play</button>
+                                        </div>
+                                        <div class="jp-interface">
+                                            <div class="jp-progress">
+                                                <div class="jp-seek-bar">
+                                                    <div class="jp-play-bar">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="jp-current-time" role="timer" aria-label="time">
+                                                &nbsp;</div>
+                                            <div class="jp-duration" role="timer" aria-label="duration">
+                                                &nbsp;</div>
+                                            <div class="jp-details">
+                                                <div class="jp-title" aria-label="title">
+                                                    &nbsp;</div>
+                                            </div>
+                                            <div class="jp-controls-holder">
+                                                <div class="jp-volume-controls">
+                                                    <button class="jp-mute" role="button" tabindex="0">
+                                                        mute</button>
+                                                    <button class="jp-volume-max" role="button" tabindex="0">
+                                                        max volume</button>
+                                                    <div class="jp-volume-bar">
+                                                        <div class="jp-volume-bar-value">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="jp-controls">
+                                                    <button class="jp-play" role="button" tabindex="0">
+                                                        play</button>
+                                                    <button class="jp-stop" role="button" tabindex="0">
+                                                        stop</button>
+                                                </div>
+                                                <div class="jp-toggles">
+                                                    <button class="jp-repeat" role="button" tabindex="0">
+                                                        repeat</button>
+                                                    <button class="jp-full-screen" role="button" tabindex="0">
+                                                        full screen</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="jp-no-solution">
+                                        <span>Update Required</span> To play the media you will need to either update your
+                                        browser to a recent version or update your <a href="http://get.adobe.com/flashplayer/"
+                                            target="_blank">Flash plugin</a>.
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                        </td>
+                    </tr>
+                </ItemTemplate>
+            </asp:DataList>
+        </div>
+    </div>
+    </form>
+</body>
+</html>
+Home.aspx.cs
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+protected void Page_Load(object sender, EventArgs e)
+{
+    if (!IsPostBack)
+    {
+        BindDataList();
+    }
+}
+ 
+public void Upload(object sender, EventArgs e)
+{
+    if (fuVideos.HasFile)
+    {
+        string fileName = fuVideos.PostedFile.FileName;
+        string filePath = Server.MapPath("~/videos/" + fileName);
+        string ContentType = fuVideos.PostedFile.ContentType.Split('/')[1];
+        switch (ContentType)
+        {
+            case "mp4":
+                ContentType = "m4v";
+                break;
+            default:
+                break;
+        }
+ 
+        fuVideos.SaveAs(filePath);
+        SaveRecord(fileName, "videos/" + fileName, ContentType);
+    }
+    else
+    {
+        ClientScript.RegisterClientScriptBlock(this.GetType(), "Alert", "alert('Please Select Video File')", true);
+    }
+}
+ 
+public void SaveRecord(string fileName, string filePath, string contentType)
+{
+    string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(constr))
+    {
+        string query = "INSERT INTO Files VALUES(@Name,@FilePath,@UserName,@ContentType)";
+        using (SqlCommand cmd = new SqlCommand(query, con))
+        {
+            con.Open();
+            cmd.Parameters.AddWithValue("@Name", fileName);
+            cmd.Parameters.AddWithValue("@FilePath", filePath);
+            cmd.Parameters.AddWithValue("@UserName", Session["UserName"].ToString());
+            cmd.Parameters.AddWithValue("@ContentType", contentType);
+            cmd.ExecuteNonQuery();
+            con.Close();
+            BindDataList();
+        }
+    }
+}
+ 
+public void BindDataList()
+{
+    string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(constr))
+    {
+        string query = "SELECT * FROM Files WHERE UserName = @UserName";
+        using (SqlCommand cmd = new SqlCommand(query, con))
+        {
+            cmd.Parameters.AddWithValue("@UserName", Session["UserName"].ToString());
+            using (SqlDataAdapter sda = new SqlDataAdapter(cmd))
+            {
+                DataTable dt = new DataTable();
+                sda.Fill(dt);
+                if (dt.Rows.Count > 0)
+                {
+                    dlVideos.DataSource = dt;
+                    dlVideos.DataBind();
+                    ApplyPlugin(dt);
+                }
+            }
+        }
+    }
+}
+ 
+public void ApplyPlugin(DataTable dt)
+{
+    StringBuilder sb = new StringBuilder();
+    sb.Append("$(function(){");
+    for (int i = 0; i < dt.Rows.Count; i++)
+    {
+        string elementId = "jquery_jplayer_" + dt.Rows[i]["Id"].ToString();
+        string containerId = "jp_container_" + dt.Rows[i]["Id"].ToString();
+        string videoLink = dt.Rows[i]["FilePath"].ToString();
+        string videoName = dt.Rows[i]["Name"].ToString();
+        string contentType = dt.Rows[i]["contentType"].ToString();
+        sb.Append(" $('[id*=" + elementId + "]').jPlayer({");
+        sb.Append("ready: function () {");
+        sb.Append("$(this).jPlayer('setMedia', {");
+        sb.Append("title:'" + videoName + "',");
+        sb.Append("m4v:'" + videoLink + "',");
+        sb.Append("ogv: ''});");
+        sb.Append("},");
+        sb.Append("cssSelectorAncestor: '[id*=" + containerId + "]',");
+        sb.Append("swfPath: '/js',");
+        sb.Append("supplied: 'm4v',");
+        sb.Append("useStateClassSkin: true,autoBlur: false,smoothPlayBar: true,keyEnabled: true,remainingDuration: true,toggleDuration: true});");
+    }
+    sb.Append("});");
+    ClientScript.RegisterClientScriptBlock(this.GetType(), "Apply", sb.ToString(), true);
+}
