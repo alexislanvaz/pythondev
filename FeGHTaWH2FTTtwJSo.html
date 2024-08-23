@@ -1,0 +1,134 @@
+<html><head><base href="https://rh-portal.com/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de Recursos Humanos</title>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        font-family: 'Arial', sans-serif;
+        background-color: #f0f0f0;
+    }
+    .navbar {
+        background-color: #2196F3;
+        padding: 1rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        color: white;
+    }
+    .navbar-menu {
+        display: flex;
+        gap: 1rem;
+    }
+    .navbar-menu a {
+        color: white;
+        text-decoration: none;
+    }
+    .banner {
+        background-color: #4CAF50;
+        color: white;
+        text-align: center;
+        padding: 2rem;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    @media (max-width: 768px) {
+        .navbar-menu {
+            display: none;
+        }
+    }
+</style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">RH Portal</a>
+        <div class="navbar-menu">
+            <a href="#inicio">Inicio</a>
+            <a href="#servicios">Servicios</a>
+            <a href="#contacto">Contacto</a>
+        </div>
+    </nav>
+
+    <header class="banner">
+        <h1>Portal de Recursos Humanos</h1>
+        <p>Gestiona tus necesidades laborales de manera fácil y eficiente</p>
+    </header>
+
+    <main class="container">
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-icon">⏱️</div>
+                <h2>Registro de Tiempo Extra</h2>
+                <p>Registra y aprueba horas extras trabajadas</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📅</div>
+                <h2>Permisos</h2>
+                <p>Solicita y gestiona permisos laborales</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏖️</div>
+                <h2>Vacaciones</h2>
+                <p>Planifica y solicita tus días de descanso</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h2>Evaluación de Desempeño</h2>
+                <p>Accede a tus evaluaciones y objetivos</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">💼</div>
+                <h2>Capacitaciones</h2>
+                <p>Explora oportunidades de desarrollo profesional</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📝</div>
+                <h2>Nómina</h2>
+                <p>Consulta tus recibos de nómina y declaraciones</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Aquí se puede agregar la lógica para navegar a la página correspondiente
+                    alert('Navegando a ' + this.querySelector('h2').textContent);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
