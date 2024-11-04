@@ -1,0 +1,116 @@
+{# templates/quiz.html #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Month 2024</title>
+    <link href="{{url_for('static',filename='css/style.css')}}" rel="stylesheet" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Mes de la calidad 2024: Test de entrada</h1>
+        <form id="quizForm">
+            <div class="question-container">
+                <label for="employeeNumber">Número de empleado:</label>
+                <input type="number" id="employeeNumber" name="employeeNumber" required>
+            </div>
+
+            {% for question in questions %}
+            <div class="question-container">
+                <p class="question">{{ loop.index }}. {{ question.text }}</p>
+                <div class="options">
+                    {% for option in question.options %}
+                    <div class="option">
+                        <input
+                            type="{{ question.type }}"
+                            id="{{ option.id }}"
+                            name="q{{ question.id }}"
+                            value="{{ option.value }}">
+                        <label for="{{ option.id }}">{{ option.text }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit">Enviar Respuestas</button>
+            <div id="result" class="result"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('quizForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                employeeNumber: document.getElementById('employeeNumber').value,
+                responses: []
+            };
+
+            const questions = {{ questions|length }};
+
+            for (let i = 1; i <= questions; i++) {
+                const questionData = {
+                    questionId: `q${i}`,
+                    answers: []
+                };
+
+                const questionInputs = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                questionData.answers = Array.from(questionInputs).map(input => input.value);
+
+                if (questionData.answers.length > 0) {
+                    formData.responses.push(questionData);
+                }
+            }
+
+            fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Mostrar error con SweetAlert2
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error,
+                    });
+                } else {
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.textContent = `Has acertado ${data.score} de ${data.total} preguntas (${data.percentage}%)`;
+                    resultDiv.classList.add('show');
+
+                    if (data.percentage >= 60) {
+                        resultDiv.classList.add('correct');
+                        resultDiv.classList.remove('incorrect');
+                    } else {
+                        resultDiv.classList.add('incorrect');
+                        resultDiv.classList.remove('correct');
+                    }
+
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            })
+            .catch(error => {
+                // Manejo de errores generales con SweetAlert2
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'Ha ocurrido un error inesperado. Inténtalo de nuevo más tarde.',
+                });
+                console.error('Error:', error);
+            });
+
+        });
+    </script>
+</body>
+</html>
