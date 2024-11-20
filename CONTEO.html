@@ -1,0 +1,329 @@
+<html><head><base href="https://example.com">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.form-container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+}
+
+.form-container:hover {
+    transform: translateY(-5px);
+}
+
+select {
+    width: 100%;
+    padding: 1rem;
+    margin: 0.5rem 0 1.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23764ba2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+
+.radio-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0.5rem 0 1.5rem;
+}
+
+.radio-option {
+    flex: 1;
+    min-width: 120px;
+}
+
+.radio-option input[type="radio"] {
+    display: none;
+}
+
+.radio-option label {
+    display: block;
+    padding: 0.8rem;
+    text-align: center;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #666;
+}
+
+.radio-option input[type="radio"]:checked + label {
+    background: #764ba2;
+    color: white;
+    border-color: #764ba2;
+    box-shadow: 0 2px 10px rgba(118,75,162,0.2);
+}
+
+.quantity-container {
+    display: flex;
+    gap: 1rem;
+    margin: 0.5rem 0 1.5rem;
+}
+
+.quantity-input {
+    flex: 1;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 1rem;
+    margin: 0.5rem 0 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+select:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118,75,162,0.1);
+}
+
+label {
+    color: #444;
+    font-size: 1rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+button {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(118,75,162,0.2);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(118,75,162,0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.total-container {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(118,75,162,0.1);
+    border-radius: 12px;
+}
+
+.total-label {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.total-number {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #764ba2;
+}
+
+.success-message {
+    display: none;
+    color: #764ba2;
+    text-align: center;
+    margin-top: 1rem;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #764ba2;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.pieces-per-box {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+</style>
+</head>
+<body>
+    <div class="form-container">
+        <h2 class="form-title">Registro de Inventario</h2>
+        <form id="inventoryForm">
+            <div>
+                <label for="modelo">Modelo:</label>
+                <select id="modelo" required>
+                    <option value="">Selecciona un modelo</option>
+                    <option value="1" data-pieces="12">Modelo A-100 (12 pzs/caja)</option>
+                    <option value="2" data-pieces="24">Modelo B-200 (24 pzs/caja)</option>
+                    <option value="3" data-pieces="36">Modelo C-300 (36 pzs/caja)</option>
+                    <option value="4" data-pieces="12">Modelo D-400 (12 pzs/caja)</option>
+                    <option value="5" data-pieces="24">Modelo E-500 (24 pzs/caja)</option>
+                </select>
+                <div id="piezasPorCaja" class="pieces-per-box"></div>
+            </div>
+
+            <div>
+                <label>Status:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="status1" name="status" value="1" required>
+                        <label for="status1">En Proceso</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="status2" name="status" value="2">
+                        <label for="status2">Terminado</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="status3" name="status" value="3">
+                        <label for="status3">Defectuoso</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="status4" name="status" value="4">
+                        <label for="status4">En Revisión</label>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label>Cantidad:</label>
+                <div class="quantity-container">
+                    <div class="quantity-input">
+                        <label for="cajas">Cajas completas:</label>
+                        <input type="number" id="cajas" min="0" value="0" required>
+                    </div>
+                    <div class="quantity-input">
+                        <label for="piezasPorCajaInput">Piezas por caja:</label>
+                        <input type="number" id="piezasPorCajaInput" min="1" required>
+                    </div>
+                    <div class="quantity-input">
+                        <label for="piezasSueltas">Piezas sueltas:</label>
+                        <input type="number" id="piezasSueltas" min="0" value="0" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="total-container">
+                <div class="total-label">Total de Piezas</div>
+                <div class="total-number" id="totalPiezas">0</div>
+            </div>
+
+            <button type="submit">Guardar Registro</button>
+        </form>
+        <div id="successMessage" class="success-message">
+            ¡Registro guardado exitosamente!
+        </div>
+    </div>
+
+<script>
+function calculateTotal() {
+    const modeloSelect = document.getElementById('modelo');
+    const piezasPorCajaInput = document.getElementById('piezasPorCajaInput');
+    const piezasPorCaja = parseInt(piezasPorCajaInput.value) || 0;
+    const cajas = parseInt(document.getElementById('cajas').value) || 0;
+    const piezasSueltas = parseInt(document.getElementById('piezasSueltas').value) || 0;
+    
+    const total = (cajas * piezasPorCaja) + piezasSueltas;
+    document.getElementById('totalPiezas').textContent = total;
+    return total;
+}
+
+document.getElementById('modelo').addEventListener('change', function() {
+    const selectedOption = this.selectedOptions[0];
+    const piezasPorCaja = selectedOption.dataset.pieces;
+    const piezasPorCajaInput = document.getElementById('piezasPorCajaInput');
+    
+    if (piezasPorCaja) {
+        piezasPorCajaInput.value = piezasPorCaja;
+        document.getElementById('piezasPorCaja').textContent = `Piezas por caja: ${piezasPorCaja}`;
+    } else {
+        piezasPorCajaInput.value = '';
+        document.getElementById('piezasPorCaja').textContent = '';
+    }
+    
+    calculateTotal();
+});
+
+document.getElementById('cajas').addEventListener('input', calculateTotal);
+document.getElementById('piezasPorCajaInput').addEventListener('input', calculateTotal);
+document.getElementById('piezasSueltas').addEventListener('input', calculateTotal);
+
+document.getElementById('inventoryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const modeloId = document.getElementById('modelo').value;
+    const statusId = document.querySelector('input[name="status"]:checked').value;
+    const cajas = document.getElementById('cajas').value;
+    const piezasPorCaja = document.getElementById('piezasPorCajaInput').value;
+    const piezasSueltas = document.getElementById('piezasSueltas').value;
+    const totalPiezas = calculateTotal();
+    
+    const datos = {
+        modeloId: modeloId,
+        statusId: statusId,
+        cajas: cajas,
+        piezasPorCaja: piezasPorCaja,
+        piezasSueltas: piezasSueltas,
+        totalPiezas: totalPiezas
+    };
+    
+    console.log('Datos a enviar:', datos);
+    
+    const successMessage = document.getElementById('successMessage');
+    successMessage.style.display = 'block';
+    
+    this.reset();
+    document.getElementById('totalPiezas').textContent = '0';
+    document.getElementById('piezasPorCaja').textContent = '';
+    
+    setTimeout(() => {
+        successMessage.style.display = 'none';
+    }, 2000);
+});
+
+window.onload = function() {
+    document.getElementById('modelo').focus();
+};
+</script>
+</body></html>
