@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Producción</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+            -webkit-text-fill-color: #666;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .line-selector {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .line-selector label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .line-selector select {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            background: white;
+            color: #667eea;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .line-selector select:hover,
+        .line-selector select:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .gantt-container {
+            grid-column: 1 / -1;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .gantt-chart {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .gantt-table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .gantt-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .gantt-header th {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .gantt-header th:first-child {
+            text-align: left;
+            min-width: 120px;
+        }
+
+        .gantt-row {
+            border-bottom: 1px solid #eee;
+        }
+
+        .gantt-row:nth-child(even) {
+            background: #f8f9ff;
+        }
+
+        .gantt-label {
+            padding: 15px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+        }
+
+        .gantt-cell {
+            padding: 5px;
+            text-align: center;
+            position: relative;
+            height: 50px;
+            vertical-align: middle;
+        }
+
+        .gantt-bar {
+            display: inline-block;
+            height: 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+            line-height: 25px;
+            padding: 0 10px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gantt-bar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .gantt-bar.model-xx1 {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .gantt-bar.model-xx2 {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+        }
+
+        .gantt-bar.model-xx3 {
+            background: linear-gradient(135deg, #fa709a, #fee140);
+        }
+
+        .gantt-bar.model-xx4 {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #333;
+        }
+
+        .gantt-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-2px);
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .timeline-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .timeline-time {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .timeline-production {
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .timeline-quantity {
+            font-weight: bold;
+            color: #333;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard-container {
+                padding: 20px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Dashboard de Producción</h1>
+            <p>Monitoreo en tiempo real de líneas de producción</p>
+            <div class="line-selector">
+                <label for="productionLine">Línea de Producción:</label>
+                <select id="productionLine" onchange="changeProductionLine()">
+                    <option value="all">Todas las Líneas</option>
+                    <option value="line1">Línea 1</option>
+                    <option value="line2">Línea 2</option>
+                    <option value="line3">Línea 3</option>
+                    <option value="line4">Línea 4</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalProduction">0</div>
+                <div class="stat-label">Total Piezas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalModels">0</div>
+                <div class="stat-label">Modelos Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="averagePerHour">0</div>
+                <div class="stat-label">Promedio/Hora</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="efficiency">0%</div>
+                <div class="stat-label">Eficiencia</div>
+            </div>
+        </div>
+
+        <div class="gantt-container">
+            <h3 class="chart-title">Programación y Producción por Modelo</h3>
+            <div class="gantt-chart">
+                <table class="gantt-table">
+                    <thead class="gantt-header">
+                        <tr>
+                            <th>Modelo</th>
+                            <th>08:00-09:00</th>
+                            <th>09:00-10:00</th>
+                            <th>10:00-11:00</th>
+                            <th>11:00-12:00</th>
+                            <th>12:00-13:00</th>
+                            <th>13:00-14:00</th>
+                            <th>14:00-15:00</th>
+                            <th>15:00-16:00</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ganttBody">
+                        <!-- Se llenará dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="gantt-legend">
+                <div class="legend-item">
+                    <div class="legend-color model-xx1"></div>
+                    <span>Modelo XX1</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color model-xx2"></div>
+                    <span>Modelo XX2</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color model-xx3"></div>
+                    <span>Modelo XX3</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color model-xx4"></div>
+                    <span>Modelo XX4</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3 class="chart-title">Producción por Hora</h3>
+                <canvas id="hourlyChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3 class="chart-title">Producción por Modelo</h3>
+                <canvas id="modelChart"></canvas>
+            </div>
+        </div>
+
+        <div class="timeline-container">
+            <h3 class="chart-title">Línea de Tiempo de Producción</h3>
+            <div id="timeline"></div>
+        </div>
+
+        <button class="refresh-btn" onclick="loadProductionData()">🔄 Actualizar Datos</button>
+    </div>
+
+    <script>
+        // Datos de ejemplo por línea de producción
+        const productionDataByLine = {
+            all: [
+                { time: '8:00-9:00', productions: [{ model: 'XX1', quantity: 50 }] },
+                { time: '9:00-10:00', productions: [{ model: 'XX1', quantity: 18 }, { model: 'XX2', quantity: 25 }] },
+                { time: '10:00-11:00', productions: [{ model: 'XX2', quantity: 35 }, { model: 'XX3', quantity: 22 }] },
+                { time: '11:00-12:00', productions: [{ model: 'XX1', quantity: 45 }, { model: 'XX3', quantity: 28 }] },
+                { time: '12:00-13:00', productions: [{ model: 'XX2', quantity: 40 }] },
+                { time: '13:00-14:00', productions: [{ model: 'XX1', quantity: 52 }, { model: 'XX2', quantity: 30 }] },
+                { time: '14:00-15:00', productions: [{ model: 'XX3', quantity: 38 }] },
+                { time: '15:00-16:00', productions: [{ model: 'XX1', quantity: 42 }, { model: 'XX2', quantity: 33 }, { model: 'XX3', quantity: 25 }] }
+            ],
+            line1: [
+                { time: '8:00-9:00', productions: [{ model: 'XX1', quantity: 25 }] },
+                { time: '9:00-10:00', productions: [{ model: 'XX1', quantity: 30 }] },
+                { time: '10:00-11:00', productions: [{ model: 'XX2', quantity: 20 }] },
+                { time: '11:00-12:00', productions: [{ model: 'XX1', quantity: 28 }] },
+                { time: '12:00-13:00', productions: [{ model: 'XX2', quantity: 22 }] },
+                { time: '13:00-14:00', productions: [{ model: 'XX1', quantity: 35 }] },
+                { time: '14:00-15:00', productions: [{ model: 'XX3', quantity: 18 }] },
+                { time: '15:00-16:00', productions: [{ model: 'XX1', quantity: 25 }] }
+            ],
+            line2: [
+                { time: '8:00-9:00', productions: [{ model: 'XX2', quantity: 15 }] },
+                { time: '9:00-10:00', productions: [{ model: 'XX2', quantity: 25 }] },
+                { time: '10:00-11:00', productions: [{ model: 'XX2', quantity: 15 }, { model: 'XX3', quantity: 12 }] },
+                { time: '11:00-12:00', productions: [{ model: 'XX3', quantity: 28 }] },
+                { time: '12:00-13:00', productions: [{ model: 'XX2', quantity: 18 }] },
+                { time: '13:00-14:00', productions: [{ model: 'XX2', quantity: 30 }] },
+                { time: '14:00-15:00', productions: [{ model: 'XX3', quantity: 20 }] },
+                { time: '15:00-16:00', productions: [{ model: 'XX2', quantity: 22 }] }
+            ],
+            line3: [
+                { time: '8:00-9:00', productions: [{ model: 'XX1', quantity: 10 }] },
+                { time: '9:00-10:00', productions: [{ model: 'XX1', quantity: 18 }] },
+                { time: '10:00-11:00', productions: [{ model: 'XX3', quantity: 22 }] },
+                { time: '11:00-12:00', productions: [{ model: 'XX1', quantity: 17 }] },
+                { time: '12:00-13:00', productions: [{ model: 'XX4', quantity: 15 }] },
+                { time: '13:00-14:00', productions: [{ model: 'XX4', quantity: 17 }] },
+                { time: '14:00-15:00', productions: [{ model: 'XX4', quantity: 20 }] },
+                { time: '15:00-16:00', productions: [{ model: 'XX3', quantity: 25 }] }
+            ],
+            line4: [
+                { time: '8:00-9:00', productions: [] },
+                { time: '9:00-10:00', productions: [] },
+                { time: '10:00-11:00', productions: [] },
+                { time: '11:00-12:00', productions: [] },
+                { time: '12:00-13:00', productions: [] },
+                { time: '13:00-14:00', productions: [] },
+                { time: '14:00-15:00', productions: [] },
+                { time: '15:00-16:00', productions: [] }
+            ]
+        };
+
+        // Datos para el gráfico Gantt - Ya no se necesita
+        // const ganttData = { ... };
+
+        let hourlyChart, modelChart;
+        let currentLine = 'all';
+
+        function calculateStats(data) {
+            let totalProduction = 0;
+            let modelTotals = {};
+            
+            data.forEach(hour => {
+                hour.productions.forEach(prod => {
+                    totalProduction += prod.quantity;
+                    modelTotals[prod.model] = (modelTotals[prod.model] || 0) + prod.quantity;
+                });
+            });
+
+            const totalModels = Object.keys(modelTotals).length;
+            const averagePerHour = Math.round(totalProduction / data.length);
+            const efficiency = Math.round((totalProduction / (data.length * 60)) * 100);
+
+            return { totalProduction, totalModels, averagePerHour, efficiency, modelTotals };
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalProduction').textContent = stats.totalProduction;
+            document.getElementById('totalModels').textContent = stats.totalModels;
+            document.getElementById('averagePerHour').textContent = stats.averagePerHour;
+            document.getElementById('efficiency').textContent = stats.efficiency + '%';
+        }
+
+        function createHourlyChart(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            
+            if (hourlyChart) {
+                hourlyChart.destroy();
+            }
+
+            const labels = data.map(item => item.time);
+            const hourlyTotals = data.map(hour => 
+                hour.productions.reduce((sum, prod) => sum + prod.quantity, 0)
+            );
+
+            hourlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Piezas Producidas',
+                        data: hourlyTotals,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createModelChart(modelTotals) {
+            const ctx = document.getElementById('modelChart').getContext('2d');
+            
+            if (modelChart) {
+                modelChart.destroy();
+            }
+
+            const labels = Object.keys(modelTotals);
+            const data = Object.values(modelTotals);
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe'];
+
+            modelChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTimeline(data) {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+
+            data.forEach(hour => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                
+                const totalHour = hour.productions.reduce((sum, prod) => sum + prod.quantity, 0);
+                const productionText = hour.productions.length > 0 
+                    ? hour.productions.map(prod => `${prod.model}: ${prod.quantity}pz`).join(', ')
+                    : 'Sin producción';
+                
+                item.innerHTML = `
+                    <div class="timeline-time">${hour.time}</div>
+                    <div class="timeline-production">${productionText}</div>
+                    <div class="timeline-quantity">${totalHour} pz</div>
+                `;
+                
+                timeline.appendChild(item);
+            });
+        }
+
+        function createGanttChart(data) {
+            const ganttBody = document.getElementById('ganttBody');
+            ganttBody.innerHTML = '';
+
+            const timeSlots = ['8:00-9:00', '9:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '13:00-14:00', '14:00-15:00', '15:00-16:00'];
+
+            // Obtener todos los modelos únicos de los datos
+            const allModels = new Set();
+            data.forEach(hour => {
+                hour.productions.forEach(prod => {
+                    allModels.add(prod.model);
+                });
+            });
+
+            // Crear filas para cada modelo
+            Array.from(allModels).sort().forEach(model => {
+                const row = document.createElement('tr');
+                row.className = 'gantt-row';
+                
+                // Celda del modelo
+                const modelCell = document.createElement('td');
+                modelCell.className = 'gantt-label';
+                modelCell.textContent = model;
+                row.appendChild(modelCell);
+
+                // Celdas de tiempo
+                timeSlots.forEach(timeSlot => {
+                    const cell = document.createElement('td');
+                    cell.className = 'gantt-cell';
+                    
+                    // Buscar producción para este modelo y slot de tiempo
+                    const hourData = data.find(h => h.time === timeSlot);
+                    if (hourData) {
+                        const production = hourData.productions.find(p => p.model === model);
+                        if (production && production.quantity > 0) {
+                            const bar = document.createElement('div');
+                            bar.className = `gantt-bar model-${production.model.toLowerCase()}`;
+                            bar.textContent = `${production.quantity} pz`;
+                            bar.title = `${production.model}: ${production.quantity} piezas en ${timeSlot}`;
+                            
+                            // Calcular el ancho de la barra basado en la cantidad
+                            const maxQuantity = Math.max(...data.flatMap(h => h.productions.map(p => p.quantity)));
+                            const widthPercentage = Math.max(30, (production.quantity / maxQuantity) * 100);
+                            bar.style.width = `${Math.min(widthPercentage, 90)}%`;
+                            
+                            cell.appendChild(bar);
+                        }
+                    }
+                    
+                    row.appendChild(cell);
+                });
+
+                ganttBody.appendChild(row);
+            });
+
+            // Si no hay modelos, mostrar mensaje
+            if (allModels.size === 0) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = timeSlots.length + 1;
+                cell.textContent = 'No hay datos de producción para mostrar';
+                cell.style.textAlign = 'center';
+                cell.style.padding = '20px';
+                cell.style.color = '#666';
+                row.appendChild(cell);
+                ganttBody.appendChild(row);
+            }
+        }
+
+        function changeProductionLine() {
+            const select = document.getElementById('productionLine');
+            currentLine = select.value;
+            
+            // En una aplicación real, aquí harías una petición AJAX
+            fetchProductionDataForLine(currentLine);
+        }
+
+        function fetchProductionDataForLine(line) {
+            // Simular petición AJAX
+            console.log(`Fetching data for line: ${line}`);
+            
+            // En tu aplicación Flask, harías algo como:
+            // fetch(`/api/production-data/${line}`)
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         updateDashboard(data);
+            //     });
+            
+            // Por ahora usamos datos locales
+            const data = productionDataByLine[line];
+            updateDashboard(data);
+        }
+
+        function loadProductionData() {
+            fetchProductionDataForLine(currentLine);
+        }
+
+        function updateDashboard(data) {
+            const stats = calculateStats(data);
+            updateStats(stats);
+            createHourlyChart(data);
+            createModelChart(stats.modelTotals);
+            createTimeline(data);
+            createGanttChart(data);
+        }
+
+        // Función para integrar con Flask
+        function fetchProductionFromFlask(line = 'all') {
+            const url = line === 'all' ? '/api/production-data' : `/api/production-data/${line}`;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateDashboard(data);
+            })
+            .catch(error => {
+                console.error('Error fetching production data:', error);
+            });
+        }
+
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProductionData();
+            
+            // Actualizar cada 30 segundos
+            setInterval(loadProductionData, 30000);
+        });
+    </script>Data, 30000);
+        });
+
+        // Función para integrar con Flask (ejemplo)
+        function fetchProductionFromFlask() {
+            fetch('/api/production-data', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Asumiendo que Flask retorna los datos en formato:
+                // [{"time": "8:00-9:00", "productions": [{"model": "XX1", "quantity": 50}]}]
+                updateDashboard(data);
+            })
+            .catch(error => {
+                console.error('Error fetching production data:', error);
+            });
+        }
+    </script>
+</body>
+</html>
